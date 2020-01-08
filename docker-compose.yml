@@ -15,7 +15,7 @@ services:
       labels:
         - "traefik.docker.network=traefik-net"
         - "traefik.http.services.port.loadbalancer.server.port=9000"
-        - "traefik.http.routers.port.rule=Host(`port.mathsgaze.com`)"
+        - "traefik.http.routers.port.rule=Host(`port.srv.mathsgaze.com`)"
       placement:
         constraints: [node.role == manager]
 

@@ -27,7 +27,7 @@ services:
             labels:
                 - "traefik.docker.network=traefik-net"
                 - "traefik.http.services.faas.loadbalancer.server.port=8080"
-                - "traefik.http.routers.faas.rule=Host(`faas.mathsgaze.com`)"
+                - "traefik.http.routers.faas.rule=Host(`faas.srv.mathsgaze.com`)"
             resources:
                 # limits:   # Enable if you want to limit memory usage
                 #     memory: 200M
