@@ -25,9 +25,9 @@ services:
             auth_proxy_pass_body: "false"
         deploy:
             labels:
-                - traefik.port=8080
                 - "traefik.docker.network=traefik-net"
-                - "traefik.frontend.rule=Host:localhost:8080/faas"
+                - "traefik.http.services.faas.loadbalancer.server.port=8080"
+                - "traefik.http.routers.faas.rule=Host(`faas.mathsgaze.com`)"
             resources:
                 # limits:   # Enable if you want to limit memory usage
                 #     memory: 200M
