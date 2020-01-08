@@ -6,7 +6,7 @@ services:
     command: -H unix:///var/run/docker.sock
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - portainer_data:/data
+      - port_data:/data
     ports:
       - "9000:9000"
     networks:
@@ -51,4 +51,4 @@ networks:
     external: true
 
 volumes:
-  portainer_data:
+  port_data:
