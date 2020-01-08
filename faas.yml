@@ -24,6 +24,10 @@ services:
             auth_proxy_url: "${AUTH_URL:-}"
             auth_proxy_pass_body: "false"
         deploy:
+            labels:
+                - traefik.port=8080
+                - "traefik.docker.network=traefik-net"
+                - "traefik.frontend.rule=Host:localhost:8080/faas"
             resources:
                 # limits:   # Enable if you want to limit memory usage
                 #     memory: 200M
