@@ -31,7 +31,7 @@ services:
                 - "traefik.http.routers.faas.rule=Host(`faas.srv.mathsgaze.com`)"
                 - "traefik.http.middlewares.cors.headers.accesscontrolallowmethods=POST, GET, OPTIONS"
                 - "traefik.http.middlewares.cors.headers.accesscontrolalloworigin=*"
-                - "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
+                - "traefik.http.middlewares.cors.headers.accesscontrolmaxage=100"
                 - "traefik.http.routers.faas.middlewares=cors"
             resources:
                 # limits:   # Enable if you want to limit memory usage
