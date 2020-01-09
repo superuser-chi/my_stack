@@ -29,6 +29,9 @@ services:
                 - "traefik.docker.network=traefik-net"
                 - "traefik.http.services.faas.loadbalancer.server.port=8080"
                 - "traefik.http.routers.faas.rule=Host(`faas.srv.mathsgaze.com`)"
+                - "traefik.http.middlewares.faas.headers.accesscontrolallowmethods=POST, GET"
+                - "traefik.http.middlewares.faas.headers.accesscontrolalloworigin=*"
+                - "traefik.http.middlewares.faas.headers.addvaryheader=true"
             resources:
                 # limits:   # Enable if you want to limit memory usage
                 #     memory: 200M
