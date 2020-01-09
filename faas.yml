@@ -34,6 +34,8 @@ services:
                 - "traefik.http.middlewares.cors.headers.accesscontrolmaxage=100"
                 - "traefik.http.middlewares.cors.headers.accessControlAllowHeaders=Content-Type,Accept"
                 - "traefik.http.routers.faas.middlewares=cors"
+                - "traefik.http.routers.faas.entrypoints=websecure"
+                - "traefik.http.routers.faas.tls.certresolver=myhttpchallenge"
             resources:
                 # limits:   # Enable if you want to limit memory usage
                 #     memory: 200M
