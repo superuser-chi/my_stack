@@ -29,7 +29,7 @@ services:
       - "--providers.docker.swarmMode=true"
       - "--providers.docker.network=traefik-net"
       - "--entrypoints.web.address=:80"
-       - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge=true"
       - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge.entrypoint=web"
       #- "--certificatesresolvers.myhttpchallenge.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
