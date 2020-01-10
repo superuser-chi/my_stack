@@ -3,7 +3,7 @@ version: "3.3"
 services:
   portainer:
     image:  portainer/portainer:1.22.2
-    command: --ssl -H unix:///var/run/docker.sock
+    command: -H unix:///var/run/docker.sock
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - port_data:/data
@@ -16,8 +16,6 @@ services:
         - "traefik.docker.network=traefik-net"
         - "traefik.http.services.port.loadbalancer.server.port=9000"
         - "traefik.http.routers.port.rule=Host(`port.srv.mathsgaze.com`)"
-        - "traefik.http.routers.faas.entrypoints=websecure"
-        - "traefik.http.routers.faas.tls.certresolver=myhttpchallenge"
       placement:
         constraints: [node.role == manager]
 
