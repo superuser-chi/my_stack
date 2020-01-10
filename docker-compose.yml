@@ -18,6 +18,8 @@ services:
         - "traefik.docker.network=traefik-net"
         - "traefik.http.services.port.loadbalancer.server.port=9000"
         - "traefik.http.routers.port.rule=Host(`port.srv.mathsgaze.com`)"
+        - "traefik.http.routers.traefik.entrypoints=websecure"
+        - "traefik.http.routers.traefik.tls.certresolver=myhttpchallenge"
       placement:
         constraints: [node.role == manager]
 
@@ -35,8 +37,8 @@ services:
       #- "--certificatesresolvers.myhttpchallenge.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
       - "--certificatesresolvers.myhttpchallenge.acme.email=sandilemotsa@gmail.com"
       - "--certificatesresolvers.myhttpchallenge.acme.storage=/letsencrypt/acme.json"
-      - "traefik.http.routers.faas.entrypoints=websecure"
-      - "traefik.http.routers.faas.tls.certresolver=myhttpchallenge"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls.certresolver=myhttpchallenge"
     ports:
       - 80:80
       - 443:443
