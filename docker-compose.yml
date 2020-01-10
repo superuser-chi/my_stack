@@ -10,7 +10,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - port_data:/data
     ports:
-      - "443:9000"
+      - "9000:9000"
     networks:
       - traefik-net
     deploy:
