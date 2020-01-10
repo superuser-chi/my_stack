@@ -4,7 +4,7 @@ services:
   portainer:
     image:  portainer/portainer:1.22.2
     command: 
-      --ssl 
+      - --ssl 
       - "-H unix:///var/run/docker.sock"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
