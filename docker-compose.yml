@@ -24,6 +24,8 @@ services:
     command:
       - "--providers.docker.endpoint=unix:///var/run/docker.sock"
       - "--api.insecure"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addServicesLabels=true"
       - "--providers.docker.swarmMode=true"
       - "--providers.docker.network=traefik-net"
       - "--entrypoints.web.address=:80"
