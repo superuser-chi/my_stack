@@ -28,7 +28,7 @@ services:
             labels:
                 - "traefik.docker.network=traefik-net"
                 - "traefik.http.services.faas.loadbalancer.server.port=8080"
-                - "traefik.http.routers.faas.rule=Host(`faas.srv.mathsgaze.com`)"
+                - "traefik.http.routers.faas.rule=Host(`faas.serv.mathsgaze.com`)"
                 - "traefik.http.middlewares.cors.headers.accesscontrolallowmethods=POST, GET, OPTIONS"
                 - "traefik.http.middlewares.cors.headers.accesscontrolalloworigin=*"
                 - "traefik.http.middlewares.cors.headers.accesscontrolmaxage=100"
