@@ -21,22 +21,18 @@ services:
 
   jenkins:
     image: jenkins/jenkins:lts
-    privileged: true
-    user: root
-    volumes:
-      - ~/jenkins:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /usr/local/bin/docker:/usr/local/bin/docker
     ports:
-      - 8081:8080
-      - 50000:50000
+      - 9001:8080
     networks:
       - traefik-net
+    volumes:
+      - ./jenkins:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
     deploy:
       labels:
         - "traefik.docker.network=traefik-net"
-        - "traefik.http.services.port.loadbalancer.server.port=8081"
-        - "traefik.http.routers.port.rule=Host(`jenkins.serv.mathsgaze.com`)"
+        - "traefik.http.services.jenkins.loadbalancer.server.port=9001"
+        - "traefik.http.routers.jenkins.rule=Host(`jenkins.serv.mathsgaze.com`)"
       placement:
         constraints: [node.role == manager]
 
