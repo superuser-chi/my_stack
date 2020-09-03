@@ -2,7 +2,7 @@ version: "3.3"
 
 services:
   portainer:
-    image:  portainer/portainer:1.22.2
+    image: portainer/portainer:1.22.2
     command: -H unix:///var/run/docker.sock
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -16,6 +16,23 @@ services:
         - "traefik.docker.network=traefik-net"
         - "traefik.http.services.port.loadbalancer.server.port=9000"
         - "traefik.http.routers.port.rule=Host(`port.serv.mathsgaze.com`)"
+      placement:
+        constraints: [node.role == manager]
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    ports:
+      - 9001:8080
+    networks:
+      - traefik-net
+    volumes:
+      - ./jenkins:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+      labels:
+        - "traefik.docker.network=traefik-net"
+        - "traefik.http.services.jenkins.loadbalancer.server.port=9001"
+        - "traefik.http.routers.jenkins.rule=Host(`jenkins.serv.mathsgaze.com`)"
       placement:
         constraints: [node.role == manager]
 
@@ -55,7 +72,6 @@ services:
           - node.role == manager
     networks:
       - traefik-net
-
 
 networks:
   traefik-net:
