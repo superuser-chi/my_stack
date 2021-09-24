@@ -34,6 +34,7 @@ If you're using the Portainer agent, this might setup a 3rd stack.
 ### Create Docker prerequisites
 
 1. Create network `traefik-net` with overlay driver: `docker network create -d overlay --attachable traefik-net`
+1. Create network `jenkins` with overlay driver: `docker network create -d overlay --attachable jenkins`
 1. Add secrets for openfaas:
    ```sh
    echo "admin" | docker secret create basic-auth-user -

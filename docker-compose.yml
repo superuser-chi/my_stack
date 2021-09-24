@@ -19,22 +19,46 @@ services:
       placement:
         constraints: [node.role == manager]
 
-  jenkins:
-    image: jenkins/jenkins:lts
-    ports:
-      - 9001:8080
-    networks:
-      - traefik-net
-    volumes:
-      - ./jenkins:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
+  jenkins_server:
+    image: jenkins/jenkins:2.303.1-jdk11
     deploy:
       labels:
         - "traefik.docker.network=traefik-net"
-        - "traefik.http.services.jenkins.loadbalancer.server.port=9001"
+        - "traefik.http.services.jenkins.loadbalancer.server.port=8086"
         - "traefik.http.routers.jenkins.rule=Host(`jenkins.serv.mathsgaze.com`)"
-      placement:
-        constraints: [node.role == manager]
+    build:
+      context: .
+    networks:
+      - jenkins
+      - traefik-net
+    restart: always
+    environment:
+      - DOCKER_HOST=tcp://docker:2376
+      - DOCKER_CERT_PATH=/certs/client
+      - DOCKER_TLS_VERIFY=1
+    ports:
+      - "8086:8080"
+      - "8087:50000"
+    volumes:
+      - ./jenkins-data:/var/jenkins_home:rw
+      - ./jenkins-docker-certs:/certs/client:ro
+      - ./extras:/extras:rw
+      
+  jenkins_docker:
+    image: docker:dind
+    networks:
+      jenkins:
+        aliases:
+          - docker
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
+    ports:
+      - "2376:2376"
+    volumes:
+      - ./jenkins-docker-certs:/certs/client
+      - ./jenkins-data:/var/jenkins_home
+      - ./extras:/extras  
 
   traefik:
     image: "traefik:v2.0.0-rc3"
@@ -46,7 +70,7 @@ services:
       - "--metrics.prometheus.addServicesLabels=true"
       - "--providers.docker.swarmMode=true"
       - "--providers.docker.network=traefik-net"
-      # - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.address=:80"
       # - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge=true"
       - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge.entrypoint=web"
@@ -54,7 +78,7 @@ services:
       - "--certificatesresolvers.myhttpchallenge.acme.email=sandilemotsa@gmail.com"
       - "--certificatesresolvers.myhttpchallenge.acme.storage=/letsencrypt/acme.json"
     ports:
-      # - 80:80
+      - 80:80
       # - 443:443
       - 8085:8080
     volumes:
@@ -75,6 +99,9 @@ services:
 
 networks:
   traefik-net:
+    external: true
+  jenkins:
+    driver: bridge
     external: true
 
 volumes:
