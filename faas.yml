@@ -53,226 +53,240 @@ services:
             - basic-auth-user
             - basic-auth-password
 
-    # auth service provide basic-auth plugin for system APIs
-    basic-auth-plugin:
-        image: openfaas/basic-auth-plugin:0.18.2
-        networks:
-            - functions
-        environment:
-            secret_mount_path: "/run/secrets/"
-            user_filename: "basic-auth-user"
-            pass_filename: "basic-auth-password"
-        deploy:
-            placement:
-                constraints:
-                    - "node.role == manager"
-                    - "node.platform.os == linux"
-            resources:
-                # limits:   # Enable if you want to limit memory usage
-                #     memory: 100M
-                reservations:
-                    memory: 50M
-            restart_policy:
-                condition: on-failure
-                delay: 5s
-                max_attempts: 20
-                window: 380s
-        secrets:
-            - basic-auth-user
-            - basic-auth-password
+  # auth service provide basic-auth plugin for system APIs
+  basic-auth-plugin:
+    image: openfaas/basic-auth-plugin:0.18.2
+    networks:
+      - functions
+    environment:
+      secret_mount_path: "/run/secrets/"
+      user_filename: "basic-auth-user"
+      pass_filename: "basic-auth-password"
+    deploy:
+      placement:
+        constraints:
+          - "node.role == manager"
+          - "node.platform.os == linux"
+      resources:
+        # limits:   # Enable if you want to limit memory usage
+        #     memory: 100M
+        reservations:
+          memory: 50M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 20
+        window: 380s
+    secrets:
+      - basic-auth-user
+      - basic-auth-password
 
-    # Docker Swarm provider
-    faas-swarm:
-        volumes:
-            - "/var/run/docker.sock:/var/run/docker.sock"
-        image: openfaas/faas-swarm:0.8.2
-        networks:
-            - functions
-        environment:
-            read_timeout: "15m5s" # set both here, and on your functions
-            write_timeout: "15m5s" # set both here, and on your functions
-            DOCKER_API_VERSION: "1.30"
-            basic_auth: "${BASIC_AUTH:-true}"
-            secret_mount_path: "/run/secrets/"
-        deploy:
-            placement:
-                constraints:
-                    - "node.role == manager"
-                    - "node.platform.os == linux"
-            resources:
-                # limits:   # Enable if you want to limit memory usage
-                #     memory: 100M
-                reservations:
-                    memory: 100M
-            restart_policy:
-                condition: on-failure
-                delay: 5s
-                max_attempts: 20
-                window: 380s
-        secrets:
-            - basic-auth-user
-            - basic-auth-password
+  # Docker Swarm provider
+  faas-swarm:
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    image: openfaas/faas-swarm:0.8.2
+    networks:
+      - functions
+    environment:
+      read_timeout: "15m5s" # set both here, and on your functions
+      write_timeout: "15m5s" # set both here, and on your functions
+      DOCKER_API_VERSION: "1.30"
+      basic_auth: "${BASIC_AUTH:-true}"
+      secret_mount_path: "/run/secrets/"
+    deploy:
+      placement:
+        constraints:
+          - "node.role == manager"
+          - "node.platform.os == linux"
+      resources:
+        # limits:   # Enable if you want to limit memory usage
+        #     memory: 100M
+        reservations:
+          memory: 100M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 20
+        window: 380s
+    secrets:
+      - basic-auth-user
+      - basic-auth-password
 
-    nats:
-        image: nats-streaming:0.11.2
-        # Uncomment the following port mappings if you wish to expose the
-        # NATS client and/or management ports you must also add `-m 8222` to the command
-        # ports:
-        #     - 4222:4222
-        #     - 8222:8222
-        command: "--store memory --cluster_id faas-cluster"
-        networks:
-            - functions
-        deploy:
-            resources:
-                limits:
-                    memory: 125M
-                reservations:
-                    memory: 50M
-            placement:
-                constraints:
-                    - "node.platform.os == linux"
+  nats:
+    image: nats-streaming:0.11.2
+    # Uncomment the following port mappings if you wish to expose the
+    # NATS client and/or management ports you must also add `-m 8222` to the command
+    # ports:
+    #     - 4222:4222
+    #     - 8222:8222
+    command: "--store memory --cluster_id faas-cluster"
+    networks:
+      - functions
+    deploy:
+      resources:
+        limits:
+          memory: 125M
+        reservations:
+          memory: 50M
+      placement:
+        constraints:
+          - "node.platform.os == linux"
 
-    queue-worker:
-        image: openfaas/queue-worker:0.8.1
-        networks:
-            - functions
-        environment:
-            max_inflight: "1"
-            ack_wait: "15m5s" # Max duration of any async task / request
-            basic_auth: "${BASIC_AUTH:-true}"
-            secret_mount_path: "/run/secrets/"
-            gateway_invoke: "true"
-            faas_gateway_address: "gateway"
-        deploy:
-            resources:
-                limits:
-                    memory: 50M
-                reservations:
-                    memory: 20M
-            restart_policy:
-                condition: on-failure
-                delay: 5s
-                max_attempts: 20
-                window: 380s
-            placement:
-                constraints:
-                    - "node.platform.os == linux"
-        secrets:
-            - basic-auth-user
-            - basic-auth-password
+  queue-worker:
+    image: openfaas/queue-worker:0.8.1
+    networks:
+      - functions
+    environment:
+      max_inflight: "1"
+      ack_wait: "15m5s" # Max duration of any async task / request
+      basic_auth: "${BASIC_AUTH:-true}"
+      secret_mount_path: "/run/secrets/"
+      gateway_invoke: "true"
+      faas_gateway_address: "gateway"
+    deploy:
+      resources:
+        limits:
+          memory: 50M
+        reservations:
+          memory: 20M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 20
+        window: 380s
+      placement:
+        constraints:
+          - "node.platform.os == linux"
+    secrets:
+      - basic-auth-user
+      - basic-auth-password
 
-    # End services
+  # End services
 
-    # Start monitoring
+  # Start monitoring
 
-    prometheus:
-        image: prom/prometheus:v2.11.0
-        environment:
-            no_proxy: "gateway"
-        configs:
-            - source: prometheus_config
-              target: /etc/prometheus/prometheus.yml
-            - source: prometheus_rules
-              target: /etc/prometheus/alert.rules.yml
-        command:
-            - "--config.file=/etc/prometheus/prometheus.yml"
-        #   - '-storage.local.path=/prometheus'
-        ports:
-            - 9090:9090
-        networks:
-            - functions
-        deploy:
-            placement:
-                constraints:
-                    - "node.role == manager"
-                    - "node.platform.os == linux"
-            resources:
-                limits:
-                    memory: 500M
-                reservations:
-                    memory: 200M
+  prometheus:
+    image: prom/prometheus:v2.11.0
+    environment:
+      no_proxy: "gateway"
+    configs:
+      - source: prometheus_config
+        target: /etc/prometheus/prometheus.yml
+      - source: prometheus_rules
+        target: /etc/prometheus/alert.rules.yml
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    #   - '-storage.local.path=/prometheus'
+    ports:
+      - 9090:9090
+    networks:
+      - functions
+    deploy:
+      placement:
+        constraints:
+          - "node.role == manager"
+          - "node.platform.os == linux"
+      resources:
+        limits:
+          memory: 500M
+        reservations:
+          memory: 200M
+  grafana:
+    image: grafana/grafana-oss
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_PATHS_CONFIG=/etc/grafana/custom.ini
+    volumes:
+      - ./grafana/custom.ini:/etc/grafana/custom.ini
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+      - /grafana/dashboards:/etc/grafana/dashboards
+    links:
+      - prometheus
+    networks:
+      - functions
 
-    alertmanager:
-        image: prom/alertmanager:v0.18.0
-        environment:
-            no_proxy: "gateway"
-        command:
-            - "--config.file=/alertmanager.yml"
-            - "--storage.path=/alertmanager"
-        networks:
-            - functions
-        # Uncomment the following port mapping if you wish to expose the Prometheus
-        # Alertmanager UI.
-        # ports:
-        #     - 9093:9093
-        deploy:
-            resources:
-                limits:
-                    memory: 50M
-                reservations:
-                    memory: 20M
-            placement:
-                constraints:
-                    - "node.role == manager"
-                    - "node.platform.os == linux"
-        configs:
-            - source: alertmanager_config
-              target: /alertmanager.yml
-        secrets:
-            - basic-auth-password
+  alertmanager:
+    image: prom/alertmanager:v0.18.0
+    environment:
+      no_proxy: "gateway"
+    command:
+      - "--config.file=/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+    networks:
+      - functions
+    # Uncomment the following port mapping if you wish to expose the Prometheus
+    # Alertmanager UI.
+    # ports:
+    #     - 9093:9093
+    deploy:
+      resources:
+        limits:
+          memory: 50M
+        reservations:
+          memory: 20M
+      placement:
+        constraints:
+          - "node.role == manager"
+          - "node.platform.os == linux"
+    configs:
+      - source: alertmanager_config
+        target: /alertmanager.yml
+    secrets:
+      - basic-auth-password
 
-    faas-idler:
-        image: openfaas/faas-idler:0.1.9
-        networks:
-            - functions
-        environment:
-            gateway_url: "http://gateway:8080/"
-            prometheus_host: "prometheus"
-            prometheus_port: "9090"
-            inactivity_duration: "1m" #TODO: Discuss inactivity duration
-            reconcile_interval: "30s"
-        command: "-dry-run=false"
-        deploy:
-            resources:
-                limits:   # Enable if you want to limit memory usage
-                  memory: 50M
-                reservations:
-                  memory: 30M
-            restart_policy:
-                condition: on-failure
-                delay: 5s
-                max_attempts: 20
-                window: 380s
-            placement:
-                constraints:
-                    - 'node.platform.os == linux'
-                    - 'node.role == manager'
-        secrets:
-            - source: basic-auth-user
-              target: /var/secrets/basic-auth-user
-            - source: basic-auth-password
-              target: /var/secrets/basic-auth-password
+  faas-idler:
+    image: openfaas/faas-idler:0.1.9
+    networks:
+      - functions
+    environment:
+      gateway_url: "http://gateway:8080/"
+      prometheus_host: "prometheus"
+      prometheus_port: "9090"
+      inactivity_duration: "1m" #TODO: Discuss inactivity duration
+      reconcile_interval: "30s"
+    command: "-dry-run=false"
+    deploy:
+      resources:
+        limits: # Enable if you want to limit memory usage
+          memory: 50M
+        reservations:
+          memory: 30M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 20
+        window: 380s
+      placement:
+        constraints:
+          - "node.platform.os == linux"
+          - "node.role == manager"
+    secrets:
+      - source: basic-auth-user
+        target: /var/secrets/basic-auth-user
+      - source: basic-auth-password
+        target: /var/secrets/basic-auth-password
 
 configs:
-    prometheus_config:
-        file: ./prometheus/prometheus.yml
-    prometheus_rules:
-        file: ./prometheus/alert.rules.yml
-    alertmanager_config:
-        file: ./prometheus/alertmanager.yml
+  prometheus_config:
+    file: ./prometheus/prometheus.yml
+  prometheus_rules:
+    file: ./prometheus/alert.rules.yml
+  alertmanager_config:
+    file: ./prometheus/alertmanager.yml
 
 networks:
-    functions:
-        driver: overlay
-        attachable: true
-        labels:
-            - "openfaas=true"
-    traefik-net:
-        external: true
+  functions:
+    driver: overlay
+    attachable: true
+    labels:
+      - "openfaas=true"
+  traefik-net:
+    external: true
 
 secrets:
-    basic-auth-user:
-        external: true
-    basic-auth-password:
-        external: true
+  basic-auth-user:
+    external: true
+  basic-auth-password:
+    external: true
