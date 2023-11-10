@@ -1,12 +1,12 @@
-version: "3.3"
+version: "3.8"
 
 services:
   portainer:
-    image: portainer/portainer:1.22.2
+    image: portainer/portainer-ce:latest
     command: -H unix:///var/run/docker.sock
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - port_data:/data
+      - ./portainer_data:/data
     ports:
       - "9000:9000"
     networks:
@@ -19,43 +19,83 @@ services:
       placement:
         constraints: [node.role == manager]
 
-  jenkins:
-    image: jenkins/jenkins:lts
-    ports:
-      - 9001:8080
-    networks:
-      - traefik-net
-    volumes:
-      - ./jenkins:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
+  # mssql:
+  #   image: mcr.microsoft.com/mssql/server:2019-latest
+  #   environment:
+  #     - ACCEPT_EULA=Y
+  #     - SA_PASSWORD=YourStrong@Passw0rd
+  #   ports:
+  #     - "1433:1433"
+  #   networks:
+  #     - traefik-net
+  #   deploy:
+  #     labels:
+  #       - "traefik.docker.network=traefik-net"
+  #       - "traefik.http.services.mssql.loadbalancer.server.port=1433"
+  #       - "traefik.http.routers.mssql.rule=Host(`mssql.serv.mathsgaze.com`)"
+  #     placement:
+  #       constraints: [node.role == manager]
+  jenkins_server:
+    image: jenkins/jenkins:2.401.1-lts-jdk11
     deploy:
       labels:
         - "traefik.docker.network=traefik-net"
-        - "traefik.http.services.jenkins.loadbalancer.server.port=9001"
+        - "traefik.http.services.jenkins.loadbalancer.server.port=8086"
         - "traefik.http.routers.jenkins.rule=Host(`jenkins.serv.mathsgaze.com`)"
-      placement:
-        constraints: [node.role == manager]
+    build:
+      context: .
+    networks:
+      - jenkins
+      - traefik-net
+    restart: always
+    environment:
+      - DOCKER_HOST=tcp://docker:2376
+      - DOCKER_CERT_PATH=/certs/client
+      - DOCKER_TLS_VERIFY=1
+    ports:
+      - "8086:8080"
+      - "8087:50000"
+    volumes:
+      - ./jenkins-data:/var/jenkins_home:rw
+      - ./jenkins-docker-certs:/certs/client:ro
+      - ./extras:/extras:rw
+
+  jenkins_docker:
+    image: docker:dind
+    networks:
+      jenkins:
+        aliases:
+          - docker
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
+    ports:
+      - "2376:2376"
+    volumes:
+      - ./jenkins-docker-certs:/certs/client
+      - ./jenkins-data:/var/jenkins_home
+      - ./extras:/extras
 
   traefik:
-    image: "traefik:v2.0.0-rc3"
+    image: "traefik:latest"
     command:
       - "--providers.docker.endpoint=unix:///var/run/docker.sock"
-      - "--api.insecure"
+      - "--api.dashboard=true"
       - "--metrics=true"
       - "--metrics.prometheus=true"
       - "--metrics.prometheus.addServicesLabels=true"
       - "--providers.docker.swarmMode=true"
       - "--providers.docker.network=traefik-net"
-      # - "--entrypoints.web.address=:80"
-      # - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge=true"
       - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge.entrypoint=web"
-      #- "--certificatesresolvers.myhttpchallenge.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
-      - "--certificatesresolvers.myhttpchallenge.acme.email=sandilemotsa@gmail.com"
+      - "--certificatesresolvers.myhttpchallenge.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myhttpchallenge.acme.email=mavusogiftntokozo@gmail.com"
       - "--certificatesresolvers.myhttpchallenge.acme.storage=/letsencrypt/acme.json"
     ports:
-      # - 80:80
-      # - 443:443
+      - 80:80
+      - 443:443
       - 8085:8080
     volumes:
       # So that Traefik can listen to the Docker events
@@ -66,7 +106,11 @@ services:
         - "traefik.enable=true"
         - "traefik.http.routers.traefik.rule=Host(`traefik.serv.mathsgaze.com`)"
         - "traefik.http.routers.traefik.entrypoints=web"
-        - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+        - "traefik.http.routers.dashboard.rule=(PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+        - "traefik.http.routers.dashboard.service=api@internal"
+        - "traefik.http.routers.dashboard.middlewares=auth"
+        - "traefik.http.services.traefik.loadbalancer.server.port=8085"
+        - "traefik.http.middlewares.auth.basicauth.users=test:$$apr1$$H6uskkkW$$IgXLP6ewTrSuBkTrqE8wj/,test2:$$apr1$$d9hr9HBB$$4HxwgUir3HP4EsggP/QNo0"
       placement:
         constraints:
           - node.role == manager
@@ -75,6 +119,9 @@ services:
 
 networks:
   traefik-net:
+    external: true
+  jenkins:
+    driver: bridge
     external: true
 
 volumes:

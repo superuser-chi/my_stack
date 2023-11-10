@@ -1,1 +1,4 @@
 /jenkins/
+/jenkins-data/
+/jenkins-docker-certs/
+/extras
